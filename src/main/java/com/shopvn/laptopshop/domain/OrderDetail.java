@@ -21,5 +21,4 @@ public class OrderDetail {
     //product_id long
     @ManyToOne
     @JoinColumn(name = "product_id")
-    private Products product;
-}
+    private Products product;}

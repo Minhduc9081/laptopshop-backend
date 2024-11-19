@@ -2,30 +2,73 @@ package com.shopvn.laptopshop.service;
 
 import com.shopvn.laptopshop.domain.Users;
 import com.shopvn.laptopshop.repository.UserRepository;
-import org.springframework.stereotype.Service;
 
+import jakarta.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
 public class UserService {
+
+    @Autowired
     private UserRepository userRepository;
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private final Path root = Paths.get("src/main/webapp/resources/images/avatar");
+    @PostConstruct
+    public void init() {
+        try {
+            Files.createDirectories(root);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not initialize folder for upload!");
+        }
     }
-    public void saveUser(Users user) {
-        Users users = this.userRepository.save(user);
-        System.out.println(users);
-    }
+
     public List<Users> getAllUsers() {
         return userRepository.findAll();
     }
+
     public Users getUserById(Long id) {
         return userRepository.findById(id).orElse(null);
     }
-    public void updateUser(Users users){
-        userRepository.save(users);
+
+    public Users saveUser(Users user, MultipartFile file) throws IOException {
+        if (file != null && !file.isEmpty()) {
+            String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            Files.copy(file.getInputStream(), root.resolve(filename));
+            user.setImagePath(filename);
+        }else {
+            user.setImagePath("default-avatar.jpg");
+        }
+
+
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+
+        return userRepository.save(user);
     }
-    public void deleteUser(Long id){
+
+    public void deleteUser(Long id) {
+        Users user = getUserById(id);
+        if (user != null && user.getImagePath() != null) {
+            try {
+                Files.deleteIfExists(root.resolve(user.getImagePath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         userRepository.deleteById(id);
     }
 }

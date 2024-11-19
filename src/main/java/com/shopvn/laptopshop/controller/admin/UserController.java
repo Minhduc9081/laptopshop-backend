@@ -1,82 +1,85 @@
 package com.shopvn.laptopshop.controller.admin;
 
-import com.shopvn.laptopshop.domain.Roles;
 import com.shopvn.laptopshop.domain.Users;
-import com.shopvn.laptopshop.service.RoleService;
-import com.shopvn.laptopshop.service.UploadService;
 import com.shopvn.laptopshop.service.UserService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/user")
+@RequestMapping("/admin/users")
 public class UserController {
+
     private final UserService userService;
-    private final RoleService roleService;
-    private final UploadService uploadService;
-    private final PasswordEncoder passwordEncoder;
-
-    public UserController(
-            UserService userService,
-            RoleService roleService,
-            UploadService uploadService,
-            PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.roleService = roleService;
-        this.uploadService = uploadService;
-        this.passwordEncoder = passwordEncoder;
     }
+
     @GetMapping
-    public String getUserPage(Model model){
-        List<Users> users = this.userService.getAllUsers();
-        List<Roles> roles = this.roleService.getAllRoles();
-        model.addAttribute("users",users);
-
-        //theem đối tượng user mới để binding form
-        Users user = new Users();
-        model.addAttribute("user",user);
-        model.addAttribute("roles", roles);
-
-        return "admin/user/show";
+    public String listUsers(Model model){
+        model.addAttribute("users", userService.getAllUsers());
+        return "admin/user/list";
     }
-
+    @GetMapping("/create")
+    public String showAddForm(Model model){
+        model.addAttribute("user", new Users());
+        return "admin/user/create";
+    }
     @PostMapping("/create")
-    public String createUser(@ModelAttribute Users users,
-                             @RequestParam("role") Long roleId,
-                             @RequestParam("avatarFile")MultipartFile file){
-        Roles role = roleService.getRoleById(roleId);
-        users.setRole(role);
+    public String addUser(@Valid @ModelAttribute Users user,
+                          BindingResult userBindingResult,
+                          @RequestParam("image") MultipartFile file
+                          ) throws IOException {
+        List<FieldError> errors = userBindingResult.getFieldErrors();
+        for (FieldError error : errors){
+            System.out.println(">>>>" + error.getField() + " - " + error.getDefaultMessage());
+        }
 
-        String avatar = this.uploadService.handleSaveUploadFile(file,"avatar");
-        String hashPassword = this.passwordEncoder.encode(users.getPassword());
+        if (userBindingResult.hasErrors()){
+            return "admin/user/create";
+        }
 
-        users.setAvatar(avatar);
-        users.setPassword(hashPassword);
-
-        userService.saveUser(users);
-
-        this.uploadService.handleSaveUploadFile(file,"avatar");
-        return "redirect:/admin/user";
+        userService.saveUser(user,file);
+        return "redirect:/admin/users";
+    }
+    @GetMapping("/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model){
+        Users user = userService.getUserById(id);
+        model.addAttribute("user",user);
+        return "admin/user/edit";
+    }
+    @GetMapping("/view/{id}")
+    public String viewUserDetail(@PathVariable Long id, Model model) {
+        Users user = userService.getUserById(id);
+        model.addAttribute("user", user);
+        return "admin/user/view";
+    }
+    @PostMapping("/edit/{id}")
+    public String updateUser(@PathVariable Long id, @ModelAttribute Users user,
+                             @RequestParam(value = "image", required = false) MultipartFile file) throws IOException {
+        Users existingUser = userService.getUserById(id);
+        user.setId(id);
+        if (file == null || file.isEmpty()) {
+            user.setImagePath(existingUser.getImagePath());
+        }
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            user.setPassword(existingUser.getPassword());
+        }
+        userService.saveUser(user, file);
+        return "redirect:/admin/users";
     }
 
-    @PostMapping("/update/{id}")
-    public String updateUser(@PathVariable("id") Long id,
-                             @ModelAttribute Users users) {
-        users.setId(id);
-        userService.updateUser(users);
-
-        return "redirect:/admin/user";
-    }
     @PostMapping("/delete/{id}")
-    public String deleteUser(@PathVariable("id") Long id,
-                             RedirectAttributes redirectAttributes){
+    public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "redirect:/admin/user";
+        return "redirect:/admin/users";
     }
 }
