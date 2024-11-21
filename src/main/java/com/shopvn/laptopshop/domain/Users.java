@@ -1,10 +1,9 @@
 package com.shopvn.laptopshop.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Getter
@@ -17,21 +16,29 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
+
+    @NotBlank(message = "Email cannot be blank")
     @Email
-    @Email(message = "Email is not valid", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a zA-Z0-9.-]+$")
+    @Email(message = "Email is not valid", regexp = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")
     private String email;
-    @NotNull
+
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 6)
     private String password;
-    @NotNull
+
+    @NotBlank(message = "Name cannot be blank")
     private String fullName;
+
+    @NotBlank(message = "Address cannot be blank")
     private String address;
-    @NotNull
+
+    @NotBlank(message = "Phone cannot be blank")
     private String phone;
-    @NotNull
+
     private String imagePath;
 
     // Instead of @ManyToOne, just use an enum with @Enumerated
+    @NotNull(message = "Role cannot be null")
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private UserRole role;

@@ -158,7 +158,7 @@
                                     </div>
                                 </th:block>
                                 <th:block th:unless="${#strings.isEmpty(product.imagePath)}">
-                                    <img th:src="@{/resources/images/product/{path}(path=${product.imagePath})}"
+                                    <img th:src="@{/images/product/{path}(path=${product.imagePath})}"
                                          alt="Product Image"
                                          class="product-image"
                                          th:onerror="'this.onerror=null; this.src=\'/resources/images/default-product.png\''" />

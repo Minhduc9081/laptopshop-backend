@@ -4,9 +4,10 @@ import com.shopvn.laptopshop.domain.Products;
 import com.shopvn.laptopshop.repository.ProductRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,31 +18,42 @@ import java.util.List;
 public class ProductService {
     @Autowired
     private ProductRepository productRepository;
-    private final Path root = Paths.get("src/main/webapp/resources/images/product");
+
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    private Path root;
+
     @PostConstruct
     public void init() {
         try {
+            Resource resource = resourceLoader.getResource("classpath:static/images/product");
+            root = Paths.get(resource.getFile().getAbsolutePath());
             Files.createDirectories(root);
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload!");
+            throw new RuntimeException("Could not initialize folder for upload!", e);
         }
     }
 
-    public List<Products> getAllProducts(){
+    // Các phương thức còn lại giữ nguyên
+    public List<Products> getAllProducts() {
         return productRepository.findAll();
     }
-    public Products getProductById(Long id){
+
+    public Products getProductById(Long id) {
         return productRepository.findById(id).orElse(null);
     }
-    public Products saveProduct(Products products, MultipartFile file) throws IOException{
-        if (file != null && !file.isEmpty()){
+
+    public Products saveProduct(Products products, MultipartFile file) throws IOException {
+        if (file != null && !file.isEmpty()) {
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Files.copy(file.getInputStream(), root.resolve(fileName));
             products.setImagePath(fileName);
         }
-    return productRepository.save(products);
+        return productRepository.save(products);
     }
-    public void deleteProduct(Long id){
+
+    public void deleteProduct(Long id) {
         Products products = getProductById(id);
         if (products != null && products.getImagePath() != null) {
             try {

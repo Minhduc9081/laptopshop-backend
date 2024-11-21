@@ -1,6 +1,7 @@
 package com.shopvn.laptopshop.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Entity
@@ -11,14 +12,23 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull(message = "Quantity cannot be null")
+    @Min(value = 1, message = "Quantity must be at least 1")
     private Long quantity;
+
+    @NotNull(message = "Price cannot be null")
+    @Min(value = 0, message = "Price must be greater than or equal to 0")
     private double price;
 
-    //order_id long
+    // Association with Orders (owner side)
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", nullable = false)
+    @NotNull(message = "Order cannot be null")
     private Orders order;
-    //product_id long
+
+    // Association with Products (owner side)
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Products product;}
+    @JoinColumn(name = "product_id", nullable = false)
+    @NotNull(message = "Product cannot be null")
+    private Products product;
+}

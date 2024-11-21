@@ -123,9 +123,14 @@
                                             <div class="image-preview-container">
                                                 <img id="currentImage"
                                                      th:if="${product.imagePath != null}"
-                                                     th:src="@{/resources/images/product/{imagePath}(imagePath = ${product.imagePath})}"
+                                                     th:src="@{/images/product/{imagePath}(imagePath = ${product.imagePath})}"
                                                      alt="Current Product Image"
                                                      class="image-preview">
+
+                                                <div th:if="${product.imagePath == null}"
+                                                     class="image-preview d-flex align-items-center justify-content-center bg-light">
+                                                    <i class="fas fa-image fa-4x text-secondary"></i>
+                                                </div>
 
                                                 <img id="newPreview" src="#" alt="New Preview"
                                                      class="image-preview" style="display:none;">

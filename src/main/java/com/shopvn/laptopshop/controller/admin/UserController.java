@@ -2,17 +2,14 @@ package com.shopvn.laptopshop.controller.admin;
 
 import com.shopvn.laptopshop.domain.Users;
 import com.shopvn.laptopshop.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import java.io.IOException;
-import java.util.List;
 
 @Controller
 @RequestMapping("/admin/users")
@@ -34,15 +31,10 @@ public class UserController {
         return "admin/user/create";
     }
     @PostMapping("/create")
-    public String addUser(@Valid @ModelAttribute Users user,
+    public String addUser(@Valid @ModelAttribute("user") Users user,
                           BindingResult userBindingResult,
                           @RequestParam("image") MultipartFile file
                           ) throws IOException {
-        List<FieldError> errors = userBindingResult.getFieldErrors();
-        for (FieldError error : errors){
-            System.out.println(">>>>" + error.getField() + " - " + error.getDefaultMessage());
-        }
-
         if (userBindingResult.hasErrors()){
             return "admin/user/create";
         }

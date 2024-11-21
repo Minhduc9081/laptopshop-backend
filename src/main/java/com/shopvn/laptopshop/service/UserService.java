@@ -2,14 +2,13 @@ package com.shopvn.laptopshop.service;
 
 import com.shopvn.laptopshop.domain.Users;
 import com.shopvn.laptopshop.repository.UserRepository;
-
 import jakarta.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,23 +17,29 @@ import java.util.List;
 
 @Service
 public class UserService {
-
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private final Path root = Paths.get("src/main/webapp/resources/images/avatar");
+    @Autowired
+    private ResourceLoader resourceLoader;
+
+    private Path root;
+
     @PostConstruct
     public void init() {
         try {
+            Resource resource = resourceLoader.getResource("classpath:static/images/avatar");
+            root = Paths.get(resource.getFile().getAbsolutePath());
             Files.createDirectories(root);
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload!");
+            throw new RuntimeException("Could not initialize folder for upload!", e);
         }
     }
 
+    // Các phương thức còn lại giữ nguyên
     public List<Users> getAllUsers() {
         return userRepository.findAll();
     }
@@ -48,10 +53,9 @@ public class UserService {
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Files.copy(file.getInputStream(), root.resolve(filename));
             user.setImagePath(filename);
-        }else {
+        } else {
             user.setImagePath("default-avatar.jpg");
         }
-
 
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
