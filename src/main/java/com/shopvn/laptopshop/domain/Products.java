@@ -22,7 +22,7 @@ public class Products {
 
     @NotNull(message = "Price cannot be null")
     @Min(value = 0, message = "Price must be greater than or equal to 0")
-    private Long price;
+    private double price;
 
     private String imagePath;
 

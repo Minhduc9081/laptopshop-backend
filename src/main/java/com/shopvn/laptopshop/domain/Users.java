@@ -29,10 +29,8 @@ public class Users {
     @NotBlank(message = "Name cannot be blank")
     private String fullName;
 
-    @NotBlank(message = "Address cannot be blank")
     private String address;
 
-    @NotBlank(message = "Phone cannot be blank")
     private String phone;
 
     private String imagePath;
@@ -46,6 +44,10 @@ public class Users {
     // Reverse side orders
     @OneToMany(mappedBy = "users")
     List<Orders> orders;
+
+    @OneToOne(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Cart cart;
+
 
     // Enum definition for UserRole
     public enum UserRole {

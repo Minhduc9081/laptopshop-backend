@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
   <meta charset="UTF-8">
@@ -13,7 +13,16 @@
   <!-- Main css -->
   <link rel="stylesheet" href="/auth/css/style.css">
 </head>
+<style>
+  .is-invalid {
+    border-color: red !important;
+  }
 
+  .invalid-feedback {
+    color: red;
+    display: block;
+  }
+</style>
 <body>
 <!-- Sign up form -->
 <section class="signup">
@@ -21,30 +30,57 @@
     <div class="signup-content">
       <div class="signup-form">
         <h2 class="form-title">Sign up</h2>
-        <form method="POST" class="register-form" id="register-form">
+        <form method="POST" class="register-form" id="register-form"
+                            th:action="@{/register}"
+                            th:object="${registerUser}">
+          <div th:if="${#fields.hasGlobalErrors()}">
+            <div class="text-danger" th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+          </div>
           <div class="form-group">
-            <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
-            <input type="text" name="name" id="name" placeholder="Your Name" />
+            <label for="firstName"><i class="zmdi zmdi-account material-icons-name"></i></label>
+            <input type="text" name="firstName" id="firstName" placeholder="Your First Name" th:field="*{firstName}" />
+          </div><div class="form-group">
+            <label for="lastName"><i class="zmdi zmdi-account material-icons-name"></i></label>
+            <input type="text" name="lastName" id="lastName" placeholder="Your Last Name" th:field="*{lastName}" />
           </div>
           <div class="form-group">
             <label for="email"><i class="zmdi zmdi-email"></i></label>
-            <input type="email" name="email" id="email" placeholder="Your Email" />
+            <input type="email" name="email" id="email"
+                   placeholder="Your Email"
+                   class="form-control"
+                   th:field="*{email}"
+                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''" />
+            <div th:if="${#fields.hasErrors('email')}"
+                 th:errors="*{email}"
+                 class="invalid-feedback"></div>
           </div>
           <div class="form-group">
             <label for="pass"><i class="zmdi zmdi-lock"></i></label>
-            <input type="password" name="pass" id="pass" placeholder="Password" />
+            <input type="password" name="pass" id="pass"
+                   placeholder="Password"
+                   th:field="*{password}"
+                   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"/>
+            <div th:if="${#fields.hasErrors('password')}"
+                 th:errors="*{password}"
+                 class="invalid-feedback"></div>
           </div>
           <div class="form-group">
             <label for="re-pass"><i class="zmdi zmdi-lock-outline"></i></label>
-            <input type="password" name="re_pass" id="re_pass" placeholder="Repeat your password" />
+            <input type="password" name="re_pass" id="re_pass"
+                   placeholder="Repeat your password"
+                   th:field="*{rePassword}"
+                   th:classappend="${#fields.hasErrors('rePassword')} ? 'is-invalid' : ''"/>
+            <div th:if="${#fields.hasErrors('rePassword')}"
+                 th:errors="*{rePassword}"
+                 class="invalid-feedback"></div>
           </div>
           <div class="form-group">
-            <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
-            <label for="agree-term" class="label-agree-term"><span><span></span></span>I agree all
+              <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
+              <label for="agree-term" class="label-agree-term"><span><span></span></span>I agree all
               statements in <a href="#" class="term-service">Terms of service</a></label>
           </div>
           <div class="form-group form-button">
-            <input type="submit" name="signup" id="signup" class="form-submit" value="Register" />
+              <input type="submit" name="signup" id="signup" class="form-submit" value="Register" />
           </div>
         </form>
       </div>

@@ -1,14 +1,15 @@
 package com.shopvn.laptopshop.service;
 
 import com.shopvn.laptopshop.domain.Users;
+import com.shopvn.laptopshop.domain.dto.RegisterDTO;
 import com.shopvn.laptopshop.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,16 +18,19 @@ import java.util.List;
 
 @Service
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ResourceLoader resourceLoader;
-
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ResourceLoader resourceLoader;
     private Path root;
+
+    // Constructor Injection
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       ResourceLoader resourceLoader) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.resourceLoader = resourceLoader;
+    }
 
     @PostConstruct
     public void init() {
@@ -39,7 +43,6 @@ public class UserService {
         }
     }
 
-    // Các phương thức còn lại giữ nguyên
     public List<Users> getAllUsers() {
         return userRepository.findAll();
     }
@@ -60,7 +63,6 @@ public class UserService {
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
-
         return userRepository.save(user);
     }
 
@@ -74,5 +76,29 @@ public class UserService {
             }
         }
         userRepository.deleteById(id);
+    }
+
+    public Users.UserRole getRoleByName(String roleName) {
+        try {
+            return Users.UserRole.valueOf(roleName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Role name is invalid " + roleName);
+        }
+    }
+
+    public Users registerDTOtoUser(RegisterDTO registerDTO) {
+        Users user = new Users();
+        user.setFullName(registerDTO.getFirstName() + " " + registerDTO.getLastName());
+        user.setEmail(registerDTO.getEmail());
+        user.setPassword(registerDTO.getPassword());
+        return user;
+    }
+
+    public boolean checkEmailExists(String email) {
+        return this.userRepository.existsByEmail(email);
+    }
+
+    public Users getUserByEmail(String email) {
+        return this.userRepository.findByEmail(email);
     }
 }

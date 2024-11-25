@@ -2,7 +2,6 @@ package com.shopvn.laptopshop.controller.admin;
 
 import com.shopvn.laptopshop.domain.Products;
 import com.shopvn.laptopshop.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,12 @@ import java.io.IOException;
 @RequestMapping("/admin/products")
 public class ProductController {
 
-    @Autowired
-    private ProductService productService;
+    private final ProductService productService;
+
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
     @GetMapping
     public String listProduct(Model model){
         model.addAttribute("products", productService.getAllProducts());

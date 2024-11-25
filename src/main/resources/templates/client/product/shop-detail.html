@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="utf-8">
@@ -29,20 +29,23 @@
     <link href="/client/css/style.css" rel="stylesheet">
 </head>
 <script>
-    function formatPrice(price) {
-        return new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND'
-        }).format(price);
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lấy tất cả các phần tử có class "product-price"
+        const priceElements = document.querySelectorAll(".product-price");
 
-    // Áp dụng định dạng cho tất cả phần tử giá
-    document.addEventListener('DOMContentLoaded', function() {
-        const priceElements = document.querySelectorAll('.text-dark.fs-5.fw-bold');
-        priceElements.forEach(element => {
-            const price = parseFloat(element.textContent.replace(/[^\d.-]/g, ''));
-            if (!isNaN(price)) {
-                element.textContent = formatPrice(price);
+        priceElements.forEach(priceElement => {
+            // Lấy giá trị gốc từ phần tử
+            let priceText = priceElement.textContent.trim();
+
+            // Kiểm tra nếu giá trị là số hợp lệ
+            if (!isNaN(priceText)) {
+                let priceNumber = parseFloat(priceText); // Chuyển sang số thực
+                let formattedPrice = new Intl.NumberFormat('vi-VN').format(priceNumber); // Định dạng theo kiểu Việt Nam
+
+                // Gán giá trị mới
+                priceElement.textContent = `${formattedPrice} VNĐ`;
+            } else {
+                console.warn("Không thể định dạng giá trị:", priceText);
             }
         });
     });
@@ -110,7 +113,7 @@
                     <div class="col-lg-6">
                         <h4 class="fw-bold mb-3" th:text="${product.name}">Brocoli</h4>
                         <p class="mb-3" th:text="${product.manufacture}">Category: Vegetables</p>
-                        <h5 class="text-dark fs-5 fw-bold mb-0" th:text="${product.price}">3,35 $</h5>
+                        <h5 class="text-dark fs-5 fw-bold mb-0 product-price" th:text="${product.price}">3,35 $</h5>
                         <div class="d-flex mb-4">
                             <i class="fa fa-star text-secondary"></i>
                             <i class="fa fa-star text-secondary"></i>

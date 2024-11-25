@@ -2,6 +2,8 @@ package com.shopvn.laptopshop.controller.client;
 
 import com.shopvn.laptopshop.domain.Products;
 import com.shopvn.laptopshop.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,5 +23,9 @@ public class HomePageController {
     public String getHomePage(Model model){
         model.addAttribute("products", productService.getAllProducts());
         return "client/homepage/show";
+    }
+    @GetMapping("/access-deny")
+    public String getDeny(Model model){
+        return "/auth/deny";
     }
 }

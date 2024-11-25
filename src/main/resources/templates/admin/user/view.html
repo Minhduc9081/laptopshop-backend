@@ -165,10 +165,10 @@
                                     </div>
                                 </th:block>
                                 <th:block th:unless="${#strings.isEmpty(user.imagePath)}">
-                                    <img th:src="@{'/resources/images/avatar/' + ${user.imagePath}}"
+                                    <img th:src="@{'/static/images/avatar/' + ${user.imagePath}}"
                                          alt="User Avatar"
                                          class="user-avatar"
-                                         th:onerror="'this.onerror=null; this.src=\'/resources/images/default-avatar.png\''" />
+                                         th:onerror="'this.onerror=null; this.src=\'/resources/images/avatar/img.png\''" />
                                 </th:block>
                             </div>
                             <div class="user-name" th:text="${user.fullName}"></div>
