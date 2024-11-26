@@ -1,9 +1,6 @@
 package com.shopvn.laptopshop.service;
 
-import com.shopvn.laptopshop.domain.Cart;
-import com.shopvn.laptopshop.domain.CartDetail;
-import com.shopvn.laptopshop.domain.Products;
-import com.shopvn.laptopshop.domain.Users;
+import com.shopvn.laptopshop.domain.*;
 import com.shopvn.laptopshop.repository.CartDetailRepository;
 import com.shopvn.laptopshop.repository.CartRepository;
 import com.shopvn.laptopshop.repository.ProductRepository;
@@ -84,7 +81,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public void addProductToCart(String email, Long productId, HttpSession session) {
+    public void addProductToCart(String email, Long productId, HttpSession session, long quantity) {
         // Implementation for adding product to cart
         Users users = this.userService.getUserByEmail(email);
         if (users != null){
@@ -129,4 +126,90 @@ public class ProductService {
             }
         }
     }
+    public Cart fetchByUser(Users user) {
+        return this.cartRepository.findByUsers(user);
+    }
+    public void handleRemoveCartDetail(long cartDetailId, HttpSession session) {
+        Optional<CartDetail> cartDetailOptional = this.cartDetailRepository.findById(cartDetailId);
+        if (cartDetailOptional.isPresent()) {
+            CartDetail cartDetail = cartDetailOptional.get();
+
+            Cart currentCart = cartDetail.getCart();
+            // delete cart-detail
+            this.cartDetailRepository.deleteById(cartDetailId);
+
+            // update cart
+            if (currentCart.getSum() > 1) {
+                // update current cart
+                int s = currentCart.getSum() - 1;
+                currentCart.setSum(s);
+                session.setAttribute("sum", s);
+                this.cartRepository.save(currentCart);
+            } else {
+                // delete cart (sum = 1)
+                this.cartRepository.deleteById(currentCart.getId());
+                session.setAttribute("sum", 0);
+            }
+        }
+    }
+
+    public void handleUpdateCartBeforeCheckout(List<CartDetail> cartDetails) {
+        for (CartDetail cartDetail : cartDetails) {
+            Optional<CartDetail> cdOptional = this.cartDetailRepository.findById(cartDetail.getId());
+            if (cdOptional.isPresent()) {
+                CartDetail currentCartDetail = cdOptional.get();
+                currentCartDetail.setQuantity(cartDetail.getQuantity());
+                this.cartDetailRepository.save(currentCartDetail);
+            }
+        }
+    }
+
+    public void handlePlaceOrder(
+            Users user, HttpSession session,
+            String receiverName, String receiverAddress, String receiverPhone) {
+
+        // step 1: get cart by user
+        Cart cart = this.cartRepository.findByUsers(user);
+        if (cart != null) {
+            List<CartDetail> cartDetails = cart.getCartDetails();
+
+            if (cartDetails != null) {
+
+                // create order
+                Orders order = new Orders();
+                order.setUsers(user);
+
+                double sum = 0;
+                for (CartDetail cd : cartDetails) {
+                    sum += cd.getPrice();
+                }
+                order.setTotalPrice(sum);
+                order = this.orderRepository.save(order);
+
+                // create orderDetail
+
+                for (CartDetail cd : cartDetails) {
+                    OrderDetail orderDetail = new OrderDetail();
+                    orderDetail.setOrder(order);
+                    orderDetail.setProduct(cd.getProduct());
+                    orderDetail.setPrice(cd.getPrice());
+                    orderDetail.setQuantity(Long.valueOf(cd.getQuantity()));
+
+                    this.orderDetailRepository.save(orderDetail);
+                }
+
+                // step 2: delete cart_detail and cart
+                for (CartDetail cd : cartDetails) {
+                    this.cartDetailRepository.deleteById(cd.getId());
+                }
+
+                this.cartRepository.deleteById(cart.getId());
+
+                // step 3 : update session
+                session.setAttribute("sum", 0);
+            }
+        }
+
+    }
+
 }
